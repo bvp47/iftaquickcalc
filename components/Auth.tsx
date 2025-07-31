@@ -99,21 +99,22 @@ export default function Auth({ onClose }: AuthProps) {
   }
 
   const handleGoogleSignIn = async () => {
-    setLoading(true)
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/?payment=true`,
-        },
-      })
-      if (error) throw error
-    } catch (error: any) {
-      setMessage(error.message)
-      setMessageType('error')
-      setLoading(false)
-    }
+  setLoading(true)
+  try {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/?payment=true`,
+      },
+    })
+    if (error) throw error
+  } catch (error: any) {
+    setMessage(error.message)
+    setMessageType('error')
+    setLoading(false)
   }
+}
+
 
   const handlePayment = async () => {
     try {
