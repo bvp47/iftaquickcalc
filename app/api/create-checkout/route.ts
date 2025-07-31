@@ -86,4 +86,4 @@ export async function POST(request: Request) {
       url: session.url 
     })
 
-  } catch (error
+  } catch (error) {
