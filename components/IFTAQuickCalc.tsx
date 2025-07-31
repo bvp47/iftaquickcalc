@@ -302,33 +302,32 @@ export default function IFTAQuickCalc() {
   const isPaid = userProfile?.paid_at !== null
   const unknownJurisdictions = rows.filter(r => rateTable[r.jur] === undefined)
 
-if (loading) {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">Loading IFTA QuickCalc...</p>
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading IFTA QuickCalc...</p>
+        </div>
       </div>
-    </div>
-  )
-}
+    )
+  }
 
-// Show Auth component only when explicitly requested
-if (showAuth) {
-  return <Auth />
-}
+  // Show Auth component only when explicitly requested
+  if (showAuth) {
+    return <Auth />
+  }
 
-return (
-  <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-    <div className="max-w-6xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="text-center py-8">
-        <div className="flex justify-between items-center mb-4">
-          <div></div>
-          <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
-            <Calculator className="w-10 h-10 text-blue-600" />
-            IFTA QuickCalc
-          </h1>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="text-center py-8">
+          <div className="flex justify-between items-center mb-4">
+            <div></div>
+            <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
+              <Calculator className="w-10 h-10 text-blue-600" />
+              IFTA QuickCalc
             </h1>
             <div className="flex items-center gap-4">
               {user ? (
@@ -378,167 +377,164 @@ return (
 
         {/* Main Content - Single Column Stack */}
         <div className="space-y-6">
-          {/* Configuration Panel */}
-          <div className="space-y-6">
-            {/* Quarter Selection */}
-            <Card className="shadow-lg border-0">
-              <CardHeader className="bg-white rounded-t-lg pb-8">
-                <CardTitle className="text-xl font-semibold text-gray-800">Step 1: Select Quarter</CardTitle>
-              </CardHeader>
-              <CardContent className="p-8 space-y-8">
-                <div className="flex items-center gap-6">
-                  <Label htmlFor="quarter-select" className="text-base font-medium text-gray-700 min-w-fit">
-                    Reporting Quarter:
-                  </Label>
-                  <select 
-                    id="quarter-select"
-                    value={quarter} 
-                    onChange={(e) => setQuarter(e.target.value)}
-                    className="w-48 h-10 px-3 rounded-md border border-input bg-background"
-                  >
-                    {quarters.map((q) => (
-                      <option key={q} value={q}>{q}</option>
-                    ))}
-                  </select>
-                  {rateLoading && <div className="text-sm text-gray-500">Loading rates...</div>}
-                </div>
-              </CardContent>
-            </Card>
+          {/* Quarter Selection */}
+          <Card className="shadow-lg border-0">
+            <CardHeader className="bg-white rounded-t-lg pb-8">
+              <CardTitle className="text-xl font-semibold text-gray-800">Step 1: Select Quarter</CardTitle>
+            </CardHeader>
+            <CardContent className="p-8 space-y-8">
+              <div className="flex items-center gap-6">
+                <Label htmlFor="quarter-select" className="text-base font-medium text-gray-700 min-w-fit">
+                  Reporting Quarter:
+                </Label>
+                <select 
+                  id="quarter-select"
+                  value={quarter} 
+                  onChange={(e) => setQuarter(e.target.value)}
+                  className="w-48 h-10 px-3 rounded-md border border-input bg-background"
+                >
+                  {quarters.map((q) => (
+                    <option key={q} value={q}>{q}</option>
+                  ))}
+                </select>
+                {rateLoading && <div className="text-sm text-gray-500">Loading rates...</div>}
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Data Import */}
+          {/* Data Import */}
+          <Card className="shadow-lg border-0">
+            <CardHeader className="bg-white rounded-t-lg pb-8">
+              <CardTitle className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                <Upload className="w-5 h-5 text-gray-600" />
+                Step 2: Import Trip Data
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 space-y-6">
+              {/* File Upload */}
+              <div className="relative">
+                <Label htmlFor="file-upload" className={`text-base font-medium mb-4 block ${!user || !isPaid ? 'text-gray-400' : 'text-gray-700'}`}>
+                  Upload CSV File
+                  {(!user || !isPaid) && <span className="text-blue-600 text-sm ml-2">(Pro Feature)</span>}
+                </Label>
+                <input
+                  id="file-upload"
+                  type="file"
+                  accept=".csv,.txt"
+                  onChange={handleFileUpload}
+                  disabled={!user || !isPaid}
+                  className={`w-full p-3 border-2 border-dashed rounded-lg focus:outline-none ${
+                    !user || !isPaid 
+                      ? 'border-gray-200 bg-gray-50 cursor-not-allowed text-gray-400' 
+                      : 'border-gray-300 hover:border-blue-400 focus:border-blue-500 cursor-pointer'
+                  }`}
+                />
+                {!user || !isPaid ? (
+                  <p className="text-sm text-gray-400 mt-2">
+                    File upload available after signing up for $1
+                  </p>
+                ) : (
+                  <p className="text-sm text-gray-500 mt-2">
+                    Select a CSV file with your trip data
+                  </p>
+                )}
+                
+                {/* Overlay for disabled state */}
+                {(!user || !isPaid) && (
+                  <div className="absolute inset-0 bg-gray-50 bg-opacity-50 rounded-lg flex items-center justify-center">
+                    <div className="bg-white px-3 py-1 rounded-full border border-blue-200 text-blue-600 text-sm font-medium">
+                      Sign up for $1 to unlock
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* OR Divider */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-white px-2 text-gray-500">Or paste data directly</span>
+                </div>
+              </div>
+
+              {/* Paste Data */}
+              <div>
+                <Label htmlFor="csv" className="text-base font-medium text-gray-700 mb-4 block">
+                  Paste Data Directly
+                </Label>
+                <Textarea
+                  id="csv"
+                  rows={6}
+                  placeholder="TX,1200,130,2025-07-12&#10;ON,500,190,2025-08-01"
+                  value={csv}
+                  onChange={(e) => {
+                    const txt = e.target.value
+                    setCsv(txt)
+                    parseCsv(txt)
+                  }}
+                  className="font-mono text-sm"
+                />
+                {!user && (
+                  <p className="text-xs text-blue-600 mt-2">
+                    Demo limited to {MAX_FREE_ROWS} rows. Sign up for $1 to process unlimited data.
+                  </p>
+                )}
+                <p className="text-sm text-gray-500 mt-2">
+                  Format: Jurisdiction, Miles, Fuel Quantity, Date (optional)
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Data Preview */}
+          {rows.length > 0 && (
             <Card className="shadow-lg border-0">
               <CardHeader className="bg-white rounded-t-lg pb-8">
-                <CardTitle className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-                  <Upload className="w-5 h-5 text-gray-600" />
-                  Step 2: Import Trip Data
-                </CardTitle>
+                <CardTitle className="text-xl font-semibold text-gray-800">Data Preview</CardTitle>
               </CardHeader>
-              <CardContent className="p-6 space-y-6">
-                {/* File Upload */}
-                <div className="relative">
-                  <Label htmlFor="file-upload" className={`text-base font-medium mb-4 block ${!user || !isPaid ? 'text-gray-400' : 'text-gray-700'}`}>
-                    Upload CSV File
-                    {(!user || !isPaid) && <span className="text-blue-600 text-sm ml-2">(Pro Feature)</span>}
-                  </Label>
-                  <input
-                    id="file-upload"
-                    type="file"
-                    accept=".csv,.txt"
-                    onChange={handleFileUpload}
-                    disabled={!user || !isPaid}
-                    className={`w-full p-3 border-2 border-dashed rounded-lg focus:outline-none ${
-                      !user || !isPaid 
-                        ? 'border-gray-200 bg-gray-50 cursor-not-allowed text-gray-400' 
-                        : 'border-gray-300 hover:border-blue-400 focus:border-blue-500 cursor-pointer'
-                    }`}
-                  />
-                  {!user || !isPaid ? (
-                    <p className="text-sm text-gray-400 mt-2">
-                      File upload available after signing up for $1
-                    </p>
-                  ) : (
-                    <p className="text-sm text-gray-500 mt-2">
-                      Select a CSV file with your trip data
-                    </p>
-                  )}
-                  
-                  {/* Overlay for disabled state */}
-                  {(!user || !isPaid) && (
-                    <div className="absolute inset-0 bg-gray-50 bg-opacity-50 rounded-lg flex items-center justify-center">
-                      <div className="bg-white px-3 py-1 rounded-full border border-blue-200 text-blue-600 text-sm font-medium">
-                        Sign up for $1 to unlock
-                      </div>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left font-medium text-gray-700">Jurisdiction</th>
+                        <th className="px-4 py-3 text-left font-medium text-gray-700">Miles</th>
+                        <th className="px-4 py-3 text-left font-medium text-gray-700">Quantity</th>
+                        <th className="px-4 py-3 text-left font-medium text-gray-700">Tax Rate</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {rows.map((r, i) => {
+                        const hasRate = rateTable[r.jur] !== undefined
+                        return (
+                          <tr key={i} className={!hasRate ? "bg-red-50" : ""}>
+                            <td className={`px-4 py-3 font-medium ${!hasRate ? "text-red-600" : "text-gray-900"}`}>
+                              {r.jur}
+                            </td>
+                            <td className="px-4 py-3 text-gray-700">{r.miles.toLocaleString()}</td>
+                            <td className="px-4 py-3 text-gray-700">{r.qty}</td>
+                            <td className="px-4 py-3 text-gray-700">
+                              {hasRate ? `${rateTable[r.jur].toFixed(3)}` : "Unknown"}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                  {dataLimitExceeded && (
+                    <div className="p-3 text-center text-sm text-blue-600 bg-blue-50 border-t border-blue-200">
+                      {user ? 
+                        `Preview limited to ${MAX_FREE_ROWS} rows - Upgrade to process all your data` :
+                        `Demo limited to ${MAX_FREE_ROWS} rows - Sign up to process all your data`
+                      }
                     </div>
                   )}
                 </div>
-
-                {/* OR Divider */}
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-2 text-gray-500">Or paste data directly</span>
-                  </div>
-                </div>
-
-                {/* Paste Data */}
-                <div>
-                  <Label htmlFor="csv" className="text-base font-medium text-gray-700 mb-4 block">
-                    Paste Data Directly
-                  </Label>
-                  <Textarea
-                    id="csv"
-                    rows={6}
-                    placeholder="TX,1200,130,2025-07-12&#10;ON,500,190,2025-08-01"
-                    value={csv}
-                    onChange={(e) => {
-                      const txt = e.target.value
-                      setCsv(txt)
-                      parseCsv(txt)
-                    }}
-                    className="font-mono text-sm"
-                  />
-                  {!user && (
-                    <p className="text-xs text-blue-600 mt-2">
-                      Demo limited to {MAX_FREE_ROWS} rows. Sign up for $1 to process unlimited data.
-                    </p>
-                  )}
-                  <p className="text-sm text-gray-500 mt-2">
-                    Format: Jurisdiction, Miles, Fuel Quantity, Date (optional)
-                  </p>
-                </div>
               </CardContent>
             </Card>
-
-            {/* Data Preview */}
-            {rows.length > 0 && (
-              <Card className="shadow-lg border-0">
-                <CardHeader className="bg-white rounded-t-lg pb-8">
-                  <CardTitle className="text-xl font-semibold text-gray-800">Data Preview</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-4 py-3 text-left font-medium text-gray-700">Jurisdiction</th>
-                          <th className="px-4 py-3 text-left font-medium text-gray-700">Miles</th>
-                          <th className="px-4 py-3 text-left font-medium text-gray-700">Quantity</th>
-                          <th className="px-4 py-3 text-left font-medium text-gray-700">Tax Rate</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200">
-                        {rows.map((r, i) => {
-                          const hasRate = rateTable[r.jur] !== undefined
-                          return (
-                            <tr key={i} className={!hasRate ? "bg-red-50" : ""}>
-                              <td className={`px-4 py-3 font-medium ${!hasRate ? "text-red-600" : "text-gray-900"}`}>
-                                {r.jur}
-                              </td>
-                              <td className="px-4 py-3 text-gray-700">{r.miles.toLocaleString()}</td>
-                              <td className="px-4 py-3 text-gray-700">{r.qty}</td>
-                              <td className="px-4 py-3 text-gray-700">
-                                {hasRate ? `${rateTable[r.jur].toFixed(3)}` : "Unknown"}
-                              </td>
-                            </tr>
-                          )
-                        })}
-                      </tbody>
-                    </table>
-                    {dataLimitExceeded && (
-                      <div className="p-3 text-center text-sm text-blue-600 bg-blue-50 border-t border-blue-200">
-                        {user ? 
-                          `Preview limited to ${MAX_FREE_ROWS} rows - Upgrade to process all your data` :
-                          `Demo limited to ${MAX_FREE_ROWS} rows - Sign up to process all your data`
-                        }
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+          )}
 
           {/* Results Summary */}
           {result && (
@@ -711,6 +707,7 @@ return (
               </Alert>
             )}
           </div>
+        </div>
       </div>
     </div>
   )
