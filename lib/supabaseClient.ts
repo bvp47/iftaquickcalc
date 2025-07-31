@@ -1,7 +1,7 @@
 // lib/supabaseClient.ts
+import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs';
+import { Database } from '../types/supabase'; // adjust path as needed
 
-import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs'
+const supabase = createBrowserSupabaseClient<Database>();
 
-export const supabase = createBrowserSupabaseClient()
-
-export const createClient = () => supabase
+export default supabase;
