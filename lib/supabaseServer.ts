@@ -1,11 +1,6 @@
-// lib/supabaseServer.ts
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
-import { GetServerSidePropsContext } from 'next';
-import { Database } from '../types/supabase'; // adjust path if needed
+import { cookies } from 'next/headers'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 
-export const createSupabaseServerClient = (ctx: GetServerSidePropsContext) => {
-  return createServerSupabaseClient<Database>({
-    req: ctx.req,
-    res: ctx.res,
-  });
-};
+export const createServerClient = () => {
+  return createRouteHandlerClient({ cookies })
+}
