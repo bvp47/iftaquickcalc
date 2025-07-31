@@ -25,6 +25,26 @@ export default function Auth({ onClose }: AuthProps) {
   
   const supabase = createClient()
 
+  // Get the correct site URL
+  const getSiteUrl = () => {
+    // Use environment variable if available, otherwise construct from window.location
+    if (process.env.NEXT_PUBLIC_SITE_URL) {
+      return process.env.NEXT_PUBLIC_SITE_URL
+    }
+    
+    // Fallback to window.location, but check if we're on Vercel
+    if (typeof window !== 'undefined') {
+      const origin = window.location.origin
+      // If we're on a Vercel preview or production, use that
+      if (origin.includes('.vercel.app') || origin.includes('iftaquickcalc')) {
+        return origin
+      }
+    }
+    
+    // Default fallback
+    return 'https://iftaquickcalc.vercel.app'
+  }
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -38,7 +58,7 @@ export default function Auth({ onClose }: AuthProps) {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
+            emailRedirectTo: `${getSiteUrl()}/auth/callback`,
           },
         })
         
@@ -99,22 +119,25 @@ export default function Auth({ onClose }: AuthProps) {
   }
 
   const handleGoogleSignIn = async () => {
-  setLoading(true)
-  try {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/?payment=true`,
-      },
-    })
-    if (error) throw error
-  } catch (error: any) {
-    setMessage(error.message)
-    setMessageType('error')
-    setLoading(false)
+    setLoading(true)
+    try {
+      const siteUrl = getSiteUrl()
+      console.log('Redirecting to:', `${siteUrl}/?payment=true`) // Debug log
+      
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${siteUrl}/?payment=true`,
+        },
+      })
+      if (error) throw error
+    } catch (error: any) {
+      console.error('Google sign in error:', error)
+      setMessage(error.message)
+      setMessageType('error')
+      setLoading(false)
+    }
   }
-}
-
 
   const handlePayment = async () => {
     try {
