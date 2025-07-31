@@ -565,11 +565,11 @@ export default function IFTAQuickCalc() {
                     </div>
                     <div className="text-xs sm:text-sm text-purple-700">Fuel Economy</div>
                   </div>
-                  <div className="text-center p-4 bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-lg col-span-2 sm:col-span-1">
-                    <div className="text-2xl sm:text-3xl font-bold mb-1">
+                  <div className="text-center p-4 bg-white border-2 border-gray-800 rounded-lg col-span-2 sm:col-span-1">
+                    <div className="text-2xl sm:text-3xl font-bold mb-1 text-gray-900">
                       ${result.taxOwed.toFixed(2)}
                     </div>
-                    <div className="text-xs sm:text-sm opacity-90">Tax Owed</div>
+                    <div className="text-xs sm:text-sm text-gray-700">Tax Owed</div>
                   </div>
                 </div>
 
