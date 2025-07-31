@@ -83,6 +83,20 @@ export default function IFTAQuickCalc() {
   const [validationErrors, setValidationErrors] = useState<string[]>([])
   const [dataLimitExceeded, setDataLimitExceeded] = useState(false)
 
+  // File upload handler
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const text = e.target?.result as string
+      setCsv(text)
+      parseCsv(text)
+    }
+    reader.readAsText(file)
+  }
+
   // Initialize auth and load rates
   useEffect(() => {
     initializeAuth()
@@ -361,10 +375,10 @@ export default function IFTAQuickCalc() {
           )}
         </div>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content - Single Column Stack */}
+        <div className="space-y-6">
           {/* Configuration Panel */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="space-y-6">
             {/* Quarter Selection */}
             <Card className="shadow-lg border-0">
               <CardHeader className="bg-white rounded-t-lg pb-8">
@@ -398,7 +412,56 @@ export default function IFTAQuickCalc() {
                   Step 2: Import Trip Data
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-10 space-y-8">
+              <CardContent className="p-6 space-y-6">
+                {/* File Upload */}
+                <div className="relative">
+                  <Label htmlFor="file-upload" className={`text-base font-medium mb-4 block ${!user || !isPaid ? 'text-gray-400' : 'text-gray-700'}`}>
+                    Upload CSV File
+                    {(!user || !isPaid) && <span className="text-blue-600 text-sm ml-2">(Pro Feature)</span>}
+                  </Label>
+                  <input
+                    id="file-upload"
+                    type="file"
+                    accept=".csv,.txt"
+                    onChange={handleFileUpload}
+                    disabled={!user || !isPaid}
+                    className={`w-full p-3 border-2 border-dashed rounded-lg focus:outline-none ${
+                      !user || !isPaid 
+                        ? 'border-gray-200 bg-gray-50 cursor-not-allowed text-gray-400' 
+                        : 'border-gray-300 hover:border-blue-400 focus:border-blue-500 cursor-pointer'
+                    }`}
+                  />
+                  {!user || !isPaid ? (
+                    <p className="text-sm text-gray-400 mt-2">
+                      File upload available after signing up for $1
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-500 mt-2">
+                      Select a CSV file with your trip data
+                    </p>
+                  )}
+                  
+                  {/* Overlay for disabled state */}
+                  {(!user || !isPaid) && (
+                    <div className="absolute inset-0 bg-gray-50 bg-opacity-50 rounded-lg flex items-center justify-center">
+                      <div className="bg-white px-3 py-1 rounded-full border border-blue-200 text-blue-600 text-sm font-medium">
+                        Sign up for $1 to unlock
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* OR Divider */}
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white px-2 text-gray-500">Or paste data directly</span>
+                  </div>
+                </div>
+
+                {/* Paste Data */}
                 <div>
                   <Label htmlFor="csv" className="text-base font-medium text-gray-700 mb-4 block">
                     Paste Data Directly
@@ -476,200 +539,177 @@ export default function IFTAQuickCalc() {
             )}
           </div>
 
-          {/* Results & Purchase Panel */}
-          <div className="space-y-6">
-            {/* Results Summary */}
-            {result && (
-              <Card className="shadow-lg border-0">
-                <CardHeader className="bg-white rounded-t-lg pb-8">
-                  <CardTitle className="text-xl font-semibold text-gray-800">Calculation Results</CardTitle>
-                </CardHeader>
-                <CardContent className="p-8 space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <MapPin className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-                      <div className="text-2xl font-bold text-blue-900">
-                        {result.totalMiles.toLocaleString()}
-                      </div>
-                      <div className="text-sm text-blue-700">Total Miles</div>
+          {/* Results Summary */}
+          {result && (
+            <Card className="shadow-lg border-0">
+              <CardHeader className="bg-white rounded-t-lg pb-6">
+                <CardTitle className="text-xl font-semibold text-gray-800">Calculation Results</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 space-y-6">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <MapPin className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+                    <div className="text-xl sm:text-2xl font-bold text-blue-900">
+                      {result.totalMiles.toLocaleString()}
                     </div>
-                    <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-                      <Fuel className="w-6 h-6 text-green-600 mx-auto mb-2" />
-                      <div className="text-2xl font-bold text-green-900">
-                        {result.totalGallons.toFixed(0)}
-                      </div>
-                      <div className="text-sm text-green-700">Total Gallons</div>
-                    </div>
+                    <div className="text-xs sm:text-sm text-blue-700">Total Miles</div>
                   </div>
-                  
+                  <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
+                    <Fuel className="w-6 h-6 text-green-600 mx-auto mb-2" />
+                    <div className="text-xl sm:text-2xl font-bold text-green-900">
+                      {result.totalGallons.toFixed(0)}
+                    </div>
+                    <div className="text-xs sm:text-sm text-green-700">Total Gallons</div>
+                  </div>
                   <div className="text-center p-4 bg-purple-50 rounded-lg border border-purple-200">
                     <TrendingUp className="w-6 h-6 text-purple-600 mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-purple-900">
+                    <div className="text-xl sm:text-2xl font-bold text-purple-900">
                       {result.mpg.toFixed(1)} MPG
                     </div>
-                    <div className="text-sm text-purple-700">Average Fuel Economy</div>
+                    <div className="text-xs sm:text-sm text-purple-700">Fuel Economy</div>
                   </div>
-                  
-                  <div className="text-center p-6 bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-lg">
-                    <div className="text-3xl font-bold mb-2">
+                  <div className="text-center p-4 bg-gradient-to-r from-gray-700 to-gray-800 text-white rounded-lg col-span-2 sm:col-span-1">
+                    <div className="text-2xl sm:text-3xl font-bold mb-1">
                       ${result.taxOwed.toFixed(2)}
                     </div>
-                    <div className="text-sm opacity-90">Estimated Tax Owed</div>
+                    <div className="text-xs sm:text-sm opacity-90">Tax Owed</div>
                   </div>
+                </div>
 
-                  <div className="space-y-3">
-                    {!user || !isPaid ? (
-                      <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                        <div className="text-yellow-700 font-medium mb-2">
-                          {!user ? "Sign up to download reports" : "Upgrade to download reports"}
-                        </div>
-                        <div className="text-sm text-yellow-600">Only $1 for lifetime access</div>
+                <div className="space-y-3">
+                  {!user || !isPaid ? (
+                    <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                      <div className="text-yellow-700 font-medium mb-2">
+                        {!user ? "Sign up to download reports" : "Upgrade to download reports"}
                       </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <Button 
-                          onClick={() => alert('Download functionality - PDF records ready!')}
-                          className="w-full bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900"
-                          disabled={!result}
-                        >
-                          <FileText className="w-4 h-4 mr-2" />
-                          Download Calculation Record
-                        </Button>
-                        <Button 
-                          onClick={() => alert('CSV download functionality ready!')}
-                          variant="outline"
-                          className="w-full"
-                          disabled={!result}
-                        >
-                          <FileText className="w-4 h-4 mr-2" />
-                          Download CSV Data
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Professional Features */}
-            <Card className="shadow-lg border-0">
-              <CardHeader className="bg-white rounded-t-lg pb-8">
-                <CardTitle className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-gray-600" />
-                  {user && isPaid ? "Your Pro Features" : "Unlock Full Features"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-8">
-                {!user ? (
-                  /* Demo user - show sign up benefits */
-                  <div className="space-y-6">
-                    <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                      <div className="text-4xl font-bold text-blue-700 mb-2">$1</div>
-                      <div className="text-sm text-blue-600 mb-4">One-time signup • Lifetime access</div>
-                      <ul className="text-sm space-y-2 text-blue-600 mb-6">
-                        <li className="flex items-center justify-center gap-2">
-                          <CheckCircle className="w-4 h-4 text-blue-500" />
-                          Process unlimited data rows
-                        </li>
-                        <li className="flex items-center justify-center gap-2">
-                          <CheckCircle className="w-4 h-4 text-blue-500" />
-                          Download PDF reports & CSV exports
-                        </li>
-                        <li className="flex items-center justify-center gap-2">
-                          <CheckCircle className="w-4 h-4 text-blue-500" />
-                          All quarters, all years
-                        </li>
-                        <li className="flex items-center justify-center gap-2">
-                          <CheckCircle className="w-4 h-4 text-blue-500" />
-                          Professional audit-ready format
-                        </li>
-                      </ul>
-                      <Button 
-                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" 
-                        onClick={() => setShowAuth(true)}
-                      >
-                        Sign Up for $1 - Unlock Everything
-                      </Button>
-                      <div className="text-xs text-blue-500 mt-2">
-                        Perfect for quarterly IFTA preparation
-                      </div>
+                      <div className="text-sm text-yellow-600">Only $1 for lifetime access</div>
                     </div>
-                  </div>
-                ) : !isPaid ? (
-                  /* Logged in but not paid */
-                  <div className="space-y-6">
-                    <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                      <div className="text-4xl font-bold text-blue-700 mb-2">$1</div>
-                      <div className="text-sm text-blue-600 mb-4">One-time payment • Unlock everything</div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <Button 
-                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" 
-                        onClick={handlePayment}
+                        onClick={() => alert('Download functionality - PDF records ready!')}
+                        className="w-full bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-800 hover:to-gray-900"
+                        disabled={!result}
                       >
-                        Upgrade for $1
+                        <FileText className="w-4 h-4 mr-2" />
+                        Download PDF
+                      </Button>
+                      <Button 
+                        onClick={() => alert('CSV download functionality ready!')}
+                        variant="outline"
+                        className="w-full"
+                        disabled={!result}
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        Download CSV
                       </Button>
                     </div>
-                  </div>
-                ) : (
-                  /* Paid user */
-                  <div className="text-center space-y-4 p-6">
-                    <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />
-                    <div className="text-green-700 font-semibold text-lg">Unlimited Access!</div>
-                    <div className="text-sm text-gray-600">All premium features unlocked</div>
-                  </div>
-                )}
+                  )}
+                </div>
               </CardContent>
             </Card>
+          )}
+
+          {/* Professional Features */}
+          <Card className="shadow-lg border-0">
+            <CardHeader className="bg-white rounded-t-lg pb-6">
+              <CardTitle className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-gray-600" />
+                {user && isPaid ? "Your Pro Features" : "Unlock Full Features"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              {!user ? (
+                /* Demo user - show sign up benefits */
+                <div className="space-y-4">
+                  <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                    <div className="text-4xl font-bold text-blue-700 mb-2">$1</div>
+                    <div className="text-sm text-blue-600 mb-4">One-time signup • Lifetime access</div>
+                    <ul className="text-sm space-y-2 text-blue-600 mb-6">
+                      <li className="flex items-center justify-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-blue-500" />
+                        Process unlimited data rows
+                      </li>
+                      <li className="flex items-center justify-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-blue-500" />
+                        Download PDF reports & CSV exports
+                      </li>
+                      <li className="flex items-center justify-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-blue-500" />
+                        All quarters, all years
+                      </li>
+                      <li className="flex items-center justify-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-blue-500" />
+                        Professional audit-ready format
+                      </li>
+                    </ul>
+                    <Button 
+                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" 
+                      onClick={() => setShowAuth(true)}
+                    >
+                      Sign Up for $1 - Unlock Everything
+                    </Button>
+                    <div className="text-xs text-blue-500 mt-2">
+                      Perfect for quarterly IFTA preparation
+                    </div>
+                  </div>
+                </div>
+              ) : !isPaid ? (
+                /* Logged in but not paid */
+                <div className="space-y-4">
+                  <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                    <div className="text-4xl font-bold text-blue-700 mb-2">$1</div>
+                    <div className="text-sm text-blue-600 mb-4">One-time payment • Unlock everything</div>
+                    <Button 
+                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" 
+                      onClick={handlePayment}
+                    >
+                      Upgrade for $1
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                /* Paid user */
+                <div className="text-center space-y-4 p-6">
+                  <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />
+                  <div className="text-green-700 font-semibold text-lg">Unlimited Access!</div>
+                  <div className="text-sm text-gray-600">All premium features unlocked</div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Alerts - Only show important ones */}
+          <div className="space-y-3">
+            {dataLimitExceeded && (
+              <Alert className="border-blue-200 bg-blue-50">
+                <AlertTriangle className="h-4 w-4 text-blue-600" />
+                <AlertDescription className="text-blue-700">
+                  {user ? 
+                    `Preview limited to ${MAX_FREE_ROWS} rows. Upgrade for $1 to process unlimited data.` :
+                    `Demo limited to ${MAX_FREE_ROWS} rows. Sign up for $1 to process unlimited data and get complete IFTA calculations.`
+                  }
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {error && (
+              <Alert className="border-red-200 bg-red-50">
+                <AlertTriangle className="h-4 w-4 text-red-600" />
+                <AlertDescription className="text-red-700">{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {unknownJurisdictions.length > 0 && (
+              <Alert className="border-orange-200 bg-orange-50">
+                <AlertTriangle className="h-4 w-4 text-orange-600" />
+                <AlertDescription className="text-orange-700">
+                  Unknown jurisdictions: {unknownJurisdictions.map(r => r.jur).join(", ")}. 
+                  These will be excluded from calculations.
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
-        </div>
-
-        {/* Alerts */}
-        <div className="space-y-3">
-          {dataLimitExceeded && (
-            <Alert className="border-blue-200 bg-blue-50">
-              <AlertTriangle className="h-4 w-4 text-blue-600" />
-              <AlertDescription className="text-blue-700">
-                {user ? 
-                  `Preview limited to ${MAX_FREE_ROWS} rows. Upgrade for $1 to process unlimited data.` :
-                  `Demo limited to ${MAX_FREE_ROWS} rows. Sign up for $1 to process unlimited data and get complete IFTA calculations.`
-                }
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {error && (
-            <Alert className="border-red-200 bg-red-50">
-              <AlertTriangle className="h-4 w-4 text-red-600" />
-              <AlertDescription className="text-red-700">{error}</AlertDescription>
-            </Alert>
-          )}
-
-          {unknownJurisdictions.length > 0 && (
-            <Alert className="border-orange-200 bg-orange-50">
-              <AlertTriangle className="h-4 w-4 text-orange-600" />
-              <AlertDescription className="text-orange-700">
-                Unknown jurisdictions found: {unknownJurisdictions.map(r => r.jur).join(", ")}. 
-                These entries will be excluded from tax calculations.
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {validationErrors.length > 0 && (
-            <Alert className="border-red-200 bg-red-50">
-              <AlertTriangle className="h-4 w-4 text-red-600" />
-              <AlertDescription className="text-red-700">
-                <div className="font-semibold mb-1">Data validation errors:</div>
-                <ul className="text-sm space-y-1">
-                  {validationErrors.slice(0, 5).map((err, idx) => (
-                    <li key={idx}>• {err}</li>
-                  ))}
-                  {validationErrors.length > 5 && (
-                    <li>• ... and {validationErrors.length - 5} more errors</li>
-                  )}
-                </ul>
-              </AlertDescription>
-            </Alert>
-          )}
-        </div>
       </div>
     </div>
   )
