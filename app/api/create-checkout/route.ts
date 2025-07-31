@@ -86,4 +86,7 @@ export async function POST(request: Request) {
       url: session.url 
     })
 
-  } catch (error) {
+} catch (error) {
+  console.error(error)
+  return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
+}
