@@ -438,7 +438,7 @@ export default function IFTAQuickCalc() {
                 <CardContent className="p-8 space-y-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <Route className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+                      <MapPin className="w-6 h-6 text-blue-600 mx-auto mb-2" />
                       <div className="text-2xl font-bold text-blue-900">
                         {result.totalMiles.toLocaleString()}
                       </div>
