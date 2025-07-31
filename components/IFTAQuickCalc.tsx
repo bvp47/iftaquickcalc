@@ -15,7 +15,7 @@ import {
   AlertTriangle, 
   CheckCircle,
   Fuel,
-  Route,
+  MapPin, // Changed from Route
   TrendingUp,
   LogOut,
   User
