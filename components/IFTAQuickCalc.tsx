@@ -101,7 +101,20 @@ export default function IFTAQuickCalc() {
   useEffect(() => {
     initializeAuth()
     fetchRates()
-  }, [quarter])
+    
+    // Check for payment success
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('success') === 'true') {
+      setError('')
+      // Show success message temporarily
+      setTimeout(() => {
+        // Refresh user profile to get updated paid status
+        if (user) {
+          fetchUserProfile(user.id)
+        }
+      }, 1000)
+    }
+  }, [quarter, user])
 
   const initializeAuth = async () => {
     try {
@@ -362,8 +375,8 @@ export default function IFTAQuickCalc() {
             }
           </p>
           
-          {/* Demo banner for non-logged users */}
-          {!user && (
+          {/* Demo banner for non-logged users OR Payment success message */}
+          {!user ? (
             <div className="mt-4 p-4 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg border border-blue-200">
               <p className="text-blue-800 font-medium">
                 🚛 <strong>Try it now!</strong> Upload your trip data below to see how IFTA QuickCalc works
@@ -372,7 +385,16 @@ export default function IFTAQuickCalc() {
                 Sign up for just $1 to unlock unlimited data processing and PDF reports
               </p>
             </div>
-          )}
+          ) : new URLSearchParams(window.location.search).get('success') === 'true' ? (
+            <div className="mt-4 p-4 bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg border border-green-200">
+              <p className="text-green-800 font-medium">
+                🎉 <strong>Payment successful!</strong> You now have lifetime access to all pro features!
+              </p>
+              <p className="text-green-700 text-sm mt-1">
+                Upload unlimited data, download PDF reports, and enjoy full IFTA QuickCalc capabilities
+              </p>
+            </div>
+          ) : null}
         </div>
 
         {/* Main Content - Single Column Stack */}
