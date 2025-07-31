@@ -15,7 +15,7 @@ import {
   AlertTriangle, 
   CheckCircle,
   Fuel,
-  MapPin, // Changed from Route
+  MapPin,
   TrendingUp,
   LogOut,
   User
@@ -52,6 +52,7 @@ export default function IFTAQuickCalc() {
   const [user, setUser] = useState<any>(null)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showAuth, setShowAuth] = useState(false)
   const supabase = createClient()
   
   // App state
@@ -107,6 +108,7 @@ export default function IFTAQuickCalc() {
         if (session?.user) {
           setUser(session.user)
           await fetchUserProfile(session.user.id)
+          setShowAuth(false) // Hide auth modal when user logs in
         } else {
           setUser(null)
           setUserProfile(null)
@@ -205,11 +207,18 @@ export default function IFTAQuickCalc() {
     })
 
     // Check if data limit is exceeded for non-paid users
-    if (!isPaid && parsed.length > MAX_FREE_ROWS) {
+    const isPaid = userProfile?.paid_at !== null
+    const effectiveLimit = (user && isPaid) ? Infinity : MAX_FREE_ROWS
+    
+    if (parsed.length > effectiveLimit) {
       setDataLimitExceeded(true)
       // Only keep the first MAX_FREE_ROWS for preview
-      parsed.splice(MAX_FREE_ROWS)
-      errors.push(`Preview limited to ${MAX_FREE_ROWS} rows. Sign up for $1 to process unlimited data.`)
+      parsed.splice(effectiveLimit)
+      if (user) {
+        errors.push(`Preview limited to ${effectiveLimit} rows. Upgrade for $1 to process unlimited data.`)
+      } else {
+        errors.push(`Demo limited to ${MAX_FREE_ROWS} rows. Sign up for $1 to process unlimited data.`)
+      }
     } else {
       setDataLimitExceeded(false)
     }
@@ -244,6 +253,11 @@ export default function IFTAQuickCalc() {
   }
 
   const handlePayment = async () => {
+    if (!user) {
+      setShowAuth(true)
+      return
+    }
+
     try {
       const response = await fetch('/api/create-checkout', {
         method: 'POST',
@@ -285,7 +299,8 @@ export default function IFTAQuickCalc() {
     )
   }
 
-  if (!user) {
+  // Show Auth component only when explicitly requested
+  if (showAuth) {
     return <Auth />
   }
 
@@ -301,18 +316,49 @@ export default function IFTAQuickCalc() {
               IFTA QuickCalc
             </h1>
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <User className="w-4 h-4" />
-                {user.email}
-                {isPaid && <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">PRO</span>}
-              </div>
-              <Button variant="outline" size="sm" onClick={handleSignOut}>
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </Button>
+              {user ? (
+                <>
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <User className="w-4 h-4" />
+                    {user.email}
+                    {isPaid && <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">PRO</span>}
+                  </div>
+                  <Button variant="outline" size="sm" onClick={handleSignOut}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowAuth(true)}
+                  className="bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Sign Up for $1
+                </Button>
+              )}
             </div>
           </div>
-          <p className="text-lg text-gray-600">Professional IFTA tax calculation and reporting</p>
+          <p className="text-lg text-gray-600">
+            {!user ? 
+              "Try our professional IFTA calculator - Free demo below!" :
+              "Professional IFTA tax calculation and reporting"
+            }
+          </p>
+          
+          {/* Demo banner for non-logged users */}
+          {!user && (
+            <div className="mt-4 p-4 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg border border-blue-200">
+              <p className="text-blue-800 font-medium">
+                🚛 <strong>Try it now!</strong> Upload your trip data below to see how IFTA QuickCalc works
+              </p>
+              <p className="text-blue-700 text-sm mt-1">
+                Sign up for just $1 to unlock unlimited data processing and PDF reports
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Main Content */}
@@ -369,9 +415,9 @@ export default function IFTAQuickCalc() {
                     }}
                     className="font-mono text-sm"
                   />
-                  {!isPaid && (
+                  {!user && (
                     <p className="text-xs text-blue-600 mt-2">
-                      Preview limited to {MAX_FREE_ROWS} rows. Sign up for $1 to process unlimited data.
+                      Demo limited to {MAX_FREE_ROWS} rows. Sign up for $1 to process unlimited data.
                     </p>
                   )}
                   <p className="text-sm text-gray-500 mt-2">
@@ -418,7 +464,10 @@ export default function IFTAQuickCalc() {
                     </table>
                     {dataLimitExceeded && (
                       <div className="p-3 text-center text-sm text-blue-600 bg-blue-50 border-t border-blue-200">
-                        Preview limited to {MAX_FREE_ROWS} rows - Sign up to process all your data
+                        {user ? 
+                          `Preview limited to ${MAX_FREE_ROWS} rows - Upgrade to process all your data` :
+                          `Demo limited to ${MAX_FREE_ROWS} rows - Sign up to process all your data`
+                        }
                       </div>
                     )}
                   </div>
@@ -469,9 +518,11 @@ export default function IFTAQuickCalc() {
                   </div>
 
                   <div className="space-y-3">
-                    {!isPaid ? (
+                    {!user || !isPaid ? (
                       <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                        <div className="text-yellow-700 font-medium mb-2">Sign up to download reports</div>
+                        <div className="text-yellow-700 font-medium mb-2">
+                          {!user ? "Sign up to download reports" : "Upgrade to download reports"}
+                        </div>
                         <div className="text-sm text-yellow-600">Only $1 for lifetime access</div>
                       </div>
                     ) : (
@@ -500,21 +551,21 @@ export default function IFTAQuickCalc() {
               </Card>
             )}
 
-            {/* Pricing Card */}
+            {/* Professional Features */}
             <Card className="shadow-lg border-0">
               <CardHeader className="bg-white rounded-t-lg pb-8">
                 <CardTitle className="text-xl font-semibold text-gray-800 flex items-center gap-2">
                   <FileText className="w-5 h-5 text-gray-600" />
-                  Professional Features
+                  {user && isPaid ? "Your Pro Features" : "Unlock Full Features"}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-8">
-                {!isPaid ? (
+                {!user ? (
+                  /* Demo user - show sign up benefits */
                   <div className="space-y-6">
-                    {/* Paid Access */}
                     <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
                       <div className="text-4xl font-bold text-blue-700 mb-2">$1</div>
-                      <div className="text-sm text-blue-600 mb-4">One-time signup • Unlimited access</div>
+                      <div className="text-sm text-blue-600 mb-4">One-time signup • Lifetime access</div>
                       <ul className="text-sm space-y-2 text-blue-600 mb-6">
                         <li className="flex items-center justify-center gap-2">
                           <CheckCircle className="w-4 h-4 text-blue-500" />
@@ -522,7 +573,7 @@ export default function IFTAQuickCalc() {
                         </li>
                         <li className="flex items-center justify-center gap-2">
                           <CheckCircle className="w-4 h-4 text-blue-500" />
-                          Download calculation records & CSV
+                          Download PDF reports & CSV exports
                         </li>
                         <li className="flex items-center justify-center gap-2">
                           <CheckCircle className="w-4 h-4 text-blue-500" />
@@ -530,21 +581,36 @@ export default function IFTAQuickCalc() {
                         </li>
                         <li className="flex items-center justify-center gap-2">
                           <CheckCircle className="w-4 h-4 text-blue-500" />
-                          Lifetime access
+                          Professional audit-ready format
                         </li>
                       </ul>
                       <Button 
                         className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" 
-                        onClick={handlePayment}
+                        onClick={() => setShowAuth(true)}
                       >
-                        Sign Up for $1
+                        Sign Up for $1 - Unlock Everything
                       </Button>
                       <div className="text-xs text-blue-500 mt-2">
                         Perfect for quarterly IFTA preparation
                       </div>
                     </div>
                   </div>
+                ) : !isPaid ? (
+                  /* Logged in but not paid */
+                  <div className="space-y-6">
+                    <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                      <div className="text-4xl font-bold text-blue-700 mb-2">$1</div>
+                      <div className="text-sm text-blue-600 mb-4">One-time payment • Unlock everything</div>
+                      <Button 
+                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" 
+                        onClick={handlePayment}
+                      >
+                        Upgrade for $1
+                      </Button>
+                    </div>
+                  </div>
                 ) : (
+                  /* Paid user */
                   <div className="text-center space-y-4 p-6">
                     <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />
                     <div className="text-green-700 font-semibold text-lg">Unlimited Access!</div>
@@ -562,7 +628,10 @@ export default function IFTAQuickCalc() {
             <Alert className="border-blue-200 bg-blue-50">
               <AlertTriangle className="h-4 w-4 text-blue-600" />
               <AlertDescription className="text-blue-700">
-                Preview limited to {MAX_FREE_ROWS} rows. Sign up for $1 to process unlimited data and get your complete IFTA calculations.
+                {user ? 
+                  `Preview limited to ${MAX_FREE_ROWS} rows. Upgrade for $1 to process unlimited data.` :
+                  `Demo limited to ${MAX_FREE_ROWS} rows. Sign up for $1 to process unlimited data and get complete IFTA calculations.`
+                }
               </AlertDescription>
             </Alert>
           )}
