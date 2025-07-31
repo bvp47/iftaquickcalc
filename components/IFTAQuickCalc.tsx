@@ -302,32 +302,33 @@ export default function IFTAQuickCalc() {
   const isPaid = userProfile?.paid_at !== null
   const unknownJurisdictions = rows.filter(r => rateTable[r.jur] === undefined)
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading IFTA QuickCalc...</p>
-        </div>
-      </div>
-    )
-  }
-
-  // Show Auth component only when explicitly requested
-  if (showAuth) {
-    return <Auth />
-  }
-
+if (loading) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="text-center py-8">
-          <div className="flex justify-between items-center mb-4">
-            <div></div>
-            <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
-              <Calculator className="w-10 h-10 text-blue-600" />
-              IFTA QuickCalc
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">Loading IFTA QuickCalc...</p>
+      </div>
+    </div>
+  )
+}
+
+// Show Auth component only when explicitly requested
+if (showAuth) {
+  return <Auth />
+}
+
+return (
+  <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="max-w-6xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="text-center py-8">
+        <div className="flex justify-between items-center mb-4">
+          <div></div>
+          <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-3">
+            <Calculator className="w-10 h-10 text-blue-600" />
+            IFTA QuickCalc
+          </h1>
             </h1>
             <div className="flex items-center gap-4">
               {user ? (
