@@ -1,7 +1,9 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs'
 
+export const supabase = createBrowserSupabaseClient()
 // Client-side Supabase client
 export const createClient = () => createClientComponentClient()
 
