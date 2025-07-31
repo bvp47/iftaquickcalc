@@ -1,4 +1,5 @@
 // pages/api/create-checkout.ts
+import { createServerActionClient } from '@supabase/auth-helpers-nextjs'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import Stripe from 'stripe'
 import { supabaseServer } from '@/lib/supabaseServer'
